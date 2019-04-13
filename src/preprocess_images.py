@@ -2,16 +2,27 @@
 import cv2
 import numpy as np
 import imutils
+import math
 from functools import reduce
-DEBUG = 0
 
-for i in range(90):
+#config
+
+OUTPUT_SZ = (512,512)
+IMAGES = 500
+SAVE_PATH = './ProcessedImages/'
+DEBUG = 0
+#video=cv2.VideoWriter('video.avi',cv2.VideoWriter_fourcc('M','J','P','G'),20,OUTPUT_SZ,True)
+for i in range(IMAGES):
 	img = cv2.imread(f"../../ISIC-Archive-Downloader/Data/Images/ISIC_{i:07}.jpeg")
-	img = cv2.resize(img, (512,512))
+	img_res = cv2.resize(img, OUTPUT_SZ)
+	target_x = img.shape[1]
+	target_y = img.shape[0]
+	x_scale = target_x/OUTPUT_SZ[0]
+	y_scale = target_y/OUTPUT_SZ[1]
 
 	# threshholding in hsv
 	# combine 2 masks cause red in hsv is both in 0-10 and 170-180
-	converted = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+	converted = cv2.cvtColor(img_res, cv2.COLOR_BGR2HSV)
 	lower = np.array([0,40,20], dtype='uint8')
 	upper = np.array([30,255,170], dtype='uint8')
 	skinMask1 = cv2.inRange(converted, lower, upper)
@@ -19,23 +30,11 @@ for i in range(90):
 	upper = np.array([180,255,170], dtype='uint8')
 	skinMask2 = cv2.inRange(converted, lower, upper)
 	skinMask = cv2.add(skinMask1, skinMask2)
-	if DEBUG:
-		cv2.imshow("mask", skinMask)
-		cv2.waitKey(250)
 
 	# do some rough filtering
 	kernel = np.ones((5,5),np.uint8)
-	if DEBUG:
-		cv2.imshow("mask", opening)
-		cv2.waitKey(250)
 	median = cv2.medianBlur(skinMask,5)
-	if DEBUG:
-		cv2.imshow("mask", median)
-		cv2.waitKey(250)
 	opening = cv2.morphologyEx(median, cv2.MORPH_OPEN, kernel)
-	if DEBUG:	
-		cv2.imshow("mask", opening)
-		cv2.waitKey(250)
 
 	# finding contours of objects
 	cnts = cv2.findContours(opening.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -55,19 +54,21 @@ for i in range(90):
 		crop_img = img
 	else:
 		x,y,w,h = cv2.boundingRect(combinedCnt)
-		crop_img = img[y:y+h,x:x+w]
-
-	# crop and scale
-	crop_img = img[y:y+h,x:x+w]
-	scale_img = cv2.resize(crop_img, (512,512))
+		(origLeft, origTop, origRight, origBottom) = (x, y, x+w, y+h)
+		x = int(np.round(origLeft * x_scale))
+		y = int(np.round(origTop * y_scale))
+		xmax = int(np.round(origRight * x_scale))
+		ymax = int(np.round(origBottom * y_scale))
+		crop_img = img[y:ymax,x:xmax]
+	scaled_img = cv2.resize(crop_img, OUTPUT_SZ)
 
 	if DEBUG:
-		cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0),2)
-		cv2.imshow("mask", img)
-		cv2.waitKey(250)
-
-	if not DEBUG:
-		cv2.imshow("EndImage", scale_img)
-		cv2.waitKey(100)
-
+		cv2.imshow("Scaled", scaled_img)
+		cv2.waitKey(150)
+	else:
+		cv2.imwrite(SAVE_PATH+f"IMAGE_{i:07}.png",scaled_img)
+	#print(i)
+	#video.write(scaled_img)
+	
+#video.release()
 cv2.waitKey(0)	
