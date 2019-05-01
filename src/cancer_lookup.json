@@ -1,3 +1,4 @@
 {
-  "basal cell carcinoma" : "malignant"
+  "basal cell carcinoma" : "malignant",
+  "pigmented benign keratosis" : "benign"
 }

@@ -20,16 +20,13 @@ with open('cancer_lookup.json') as json_file:
 
 
 def extract_from_cancer_lookup_json(description_json):
-    if "benign_malignant" in description_json["meta"]["clinical"] and "diagnosis" in description_json["meta"][
+    if "diagnosis" in description_json["meta"][
         "clinical"]:
 
         actual_diagnosis = description_json["meta"]["clinical"]["diagnosis"]
 
-        if actual_diagnosis == "malignant":
-            return "malignant"
-
-        elif actual_diagnosis == "benign":
-            return "benign"
+        if actual_diagnosis in cancer_lookup:
+            return cancer_lookup[actual_diagnosis]
 
 
 def extract_from_bening_malignant_json_cell(description_json):
@@ -53,7 +50,10 @@ def add_filename_to_image_mapping(description_json, filename):
     extract_from_cancer_lookup = extract_from_cancer_lookup_json(description_json)
 
     if extract_from_cancer_lookup:
-        IMAGE_MAPPING[extract_from_bening_malignant_json].append(filename)
+        IMAGE_MAPPING[extract_from_cancer_lookup].append(filename)
+        return
+
+    print(filename)
 
 
 for filename in os.listdir(IMAGES_DIRECTORY):
