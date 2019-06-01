@@ -1,13 +1,14 @@
 import json
 import os
 import shutil
+from random import shuffle
 
 ROOT_PATH = f"../../ISIC-Archive-Downloader/Data/"
 IMAGES_DIRECTORY = ROOT_PATH + "ProcessedImages/"
 LABELS_DIRECTORY = ROOT_PATH + "Descriptions/"
 
-TEST_DIRECTORY = "test"
-TRAIN_DIRECTORY = "train"
+TEST_DIRECTORY = "test2"
+TRAIN_DIRECTORY = "train2"
 
 BENIGN_DIRECTORY = "bening"
 MALIGNANT_DIRECTORY = "malignant"
@@ -82,10 +83,15 @@ TRAIN_DATA_PERCENTAGE = 0.7
 
 
 def split_images():
+    shuffle(IMAGE_MAPPING["benign"])
+    shuffle(IMAGE_MAPPING["malignant"])
     train_data_benign_labels_amount = int(len(IMAGE_MAPPING["benign"]) * TRAIN_DATA_PERCENTAGE)
     train_data_malignant_lables_amount = int(len(IMAGE_MAPPING["malignant"]) * TRAIN_DATA_PERCENTAGE)
 
     print(len(IMAGE_MAPPING["malignant"]))
+
+
+
 
     train_data_benign_names = IMAGE_MAPPING["benign"][:train_data_benign_labels_amount]
     train_data_malignant_names = IMAGE_MAPPING["malignant"][:train_data_malignant_lables_amount]
