@@ -11,7 +11,7 @@ import os
 OUTPUT_SZ = (512, 512)
 SAVE_PATH = f"../../ISIC-Archive-Downloader/Data/ProcessedImages/"
 IMAGES_PATH = r"../../ISIC-Archive-Downloader/Data/Images"
-DEBUG = 0
+DEBUG = 1
 # video=cv2.VideoWriter('video.avi',cv2.VideoWriter_fourcc('M','J','P','G'),20,OUTPUT_SZ,True)
 
 
