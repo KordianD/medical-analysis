@@ -11,20 +11,18 @@ LABELS_FILE = ROOT_PATH + "ISIC2018_Task3_Training_GroundTruth/ISIC2018_Task3_Tr
 TEST_DIRECTORY = "test_new"
 TRAIN_DIRECTORY = "train_new"
 
-IMAGE_MAPPING = dict()
-IMAGE_MAPPING["benign"] = []
-IMAGE_MAPPING["malignant"] = []
-
-TRAIN_DATA_PERCENTAGE = 0.7
-
+# rows in csv: image, MEL, NV, BCC, AKIEC, BKL, DF, VASC
 # malignant: MEL, BCC, BKL
 # benign: NV, AKIEC, DF, VASC
 
+skin_conditions = ["MEL", "NV", "BCC", "AKIEC", "BKL", "DF", "VASC"]
+IMAGE_MAPPING = {k: [] for k in skin_conditions}
+
+TRAIN_DATA_PERCENTAGE = 0.7
+
 def check_label(row):
-    if row[1]=='1.0' or row[3]=='1.0' or row[5]=='1.0':
-        IMAGE_MAPPING["malignant"].append(row[0] + ".jpg")
-    else:
-        IMAGE_MAPPING["benign"].append(row[0] + ".jpg")
+    idx = row[1:].index("1.0")
+    IMAGE_MAPPING[skin_conditions[idx-1]].append(row[0]+".jpg")
 
 def map_images():
     with open(LABELS_FILE) as file:
@@ -32,42 +30,24 @@ def map_images():
         print(next(reader, None))  # skip the headers
         for row in reader:
             check_label(row)
-    number_of_malignant_images = len(IMAGE_MAPPING["malignant"])
-    print("How many malignant images " + str(number_of_malignant_images))
-
-    number_of_benign_images = len(IMAGE_MAPPING["benign"])
-    print("How many benign images " + str(number_of_benign_images))
-
-map_images()
 
 def shuffle_images():
-    shuffle(IMAGE_MAPPING["benign"])
-    shuffle(IMAGE_MAPPING["malignant"])
+    for key, filenames in IMAGE_MAPPING.items():
+        shuffle(filenames)
+        train_data_labels_amount = int(len(filenames) * TRAIN_DATA_PERCENTAGE)
+        train_data_names = filenames[:train_data_labels_amount]
+        test_data_names = filenames[train_data_labels_amount:]
 
-    train_data_benign_labels_amount = int(len(IMAGE_MAPPING["benign"]) * TRAIN_DATA_PERCENTAGE)
-    train_data_malignant_labels_amount = int(len(IMAGE_MAPPING["malignant"]) * TRAIN_DATA_PERCENTAGE)
+        copy_images(train_data_names, TRAIN_DIRECTORY, key)
+        copy_images(test_data_names, TEST_DIRECTORY, key)
 
-    print(len(IMAGE_MAPPING["malignant"]))
-
-    train_data_benign_names = IMAGE_MAPPING["benign"][:train_data_benign_labels_amount]
-    train_data_malignant_names = IMAGE_MAPPING["malignant"][:train_data_malignant_labels_amount]
-
-    test_data_benign_names = IMAGE_MAPPING["benign"][train_data_benign_labels_amount:]
-    test_data_malignant_names = IMAGE_MAPPING["malignant"][train_data_malignant_labels_amount:]
-
-    copy_images(train_data_malignant_names, TRAIN_DIRECTORY, "malignant")
-    copy_images(train_data_benign_names, TRAIN_DIRECTORY, "benign")
-    copy_images(test_data_malignant_names, TEST_DIRECTORY, "malignant")
-    copy_images(test_data_benign_names, TEST_DIRECTORY, "benign")
-
-    copy_images(train_data_malignant_names, TRAIN_DIRECTORY, "malignant")
-    copy_images(train_data_benign_names, TRAIN_DIRECTORY, "benign")
-    copy_images(test_data_malignant_names, TEST_DIRECTORY, "malignant")
-    copy_images(test_data_benign_names, TEST_DIRECTORY, "benign")
 
 def copy_images(images_name, directory, label):
+    if not os.path.exists(ROOT_PATH + "/" + directory + "/" + label):
+        os.makedirs(ROOT_PATH + "/" + directory + "/" + label)
     for file in images_name:
             shutil.copy2(IMAGES_DIRECTORY + "/" + file, ROOT_PATH + "/" + directory + "/" + label)
 
+map_images()
 shuffle_images()
 print("OK")
