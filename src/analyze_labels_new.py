@@ -11,14 +11,14 @@ LABELS_FILE = ROOT_PATH + "ISIC2018_Task3_Training_GroundTruth/ISIC2018_Task3_Tr
 TEST_DIRECTORY = "test_new"
 TRAIN_DIRECTORY = "train_new"
 
-# rows in csv: image, MEL, NV, BCC, AKIEC, BKL, DF, VASC
+# rows in csv: image, MEL, NV, BCC, AKIEC, BKL, DF, VASC#BKL
 # malignant: MEL, BCC, BKL
 # benign: NV, AKIEC, DF, VASC
 
 skin_conditions = ["MEL", "NV", "BCC", "AKIEC", "BKL", "DF", "VASC"]
 IMAGE_MAPPING = {k: [] for k in skin_conditions}
 
-TRAIN_DATA_PERCENTAGE = 0.7
+TRAIN_DATA_PERCENTAGE = 0.8
 
 def check_label(row):
     idx = row[1:].index("1.0")
@@ -49,5 +49,9 @@ def copy_images(images_name, directory, label):
             shutil.copy2(IMAGES_DIRECTORY + "/" + file, ROOT_PATH + "/" + directory + "/" + label)
 
 map_images()
-shuffle_images()
+
+for key, filenames in IMAGE_MAPPING.items():
+    print(key, ": ", len(filenames))
+
+#shuffle_images()
 print("OK")
